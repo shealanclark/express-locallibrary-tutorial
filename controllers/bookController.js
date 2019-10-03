@@ -26,7 +26,7 @@ exports.index = function(req, res) {
     }, function(err, results) {
         res.render('index', { title: 'Local Library Home', error: err, data: results });
     });
-};;
+};
 
 // Display list of all books.
 exports.book_list = function(req, res, next) {
