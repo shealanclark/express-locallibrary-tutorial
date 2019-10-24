@@ -96,12 +96,48 @@ exports.bookinstance_create_post = [
 
 // Display BookInstance delete form on GET.
 exports.bookinstance_delete_get = function(req, res) {
-    res.send('NOT IMPLEMENTED: BookInstance delete GET');
+    async.parallel({
+        bookinstance: function(callback) {
+            Bookinstance.findById(req.params.id).exec(callback)
+        },
+        bookinstance_books: function(callback) {
+            Book.find({ 'bookinstance': req.params.id }).exec(callback)
+        }, 
+    }, function(err, results) {
+         if (err) { return next(err); }
+         if (results.bookinstance==null) { // No results.
+            res.redirect('/catalog/bookinstance');
+        }
+        // Successful, so render.
+        res.render('bookinstance_delete', { title: 'Delete BookInstance', bookinstance: results.bookinstance, bookinstance_books: results.bookinstances_books } );
+    });
 };
-
 // Handle BookInstance delete on POST.
 exports.bookinstance_delete_post = function(req, res) {
-    res.send('NOT IMPLEMENTED: BookInstance delete POST');
+    async.parallel({
+        bookinstance: function(callback) {
+          Bookinstance.findById(req.body.bookinstanceid).exec(callback)
+        },
+        bookinstances_books: function(callback) {
+          Book.find({ 'bookinstance': req.body.bookinstanceid }).exec(callback)
+        },
+    }, function(err, results) {
+        if (err) { return next(err); }
+        // Success
+        if (results.bookinstances_books.length > 0) {
+            // Bookinstance has books. Render in same way as for GET route.
+            res.render('bookinstance_delete', { title: 'Delete Bookinstance', bookinstance: results.bookinstance, bookinstance_books: results.bookinstances_books } );
+            return;
+        }
+        else {
+            // Bookinstance has no books. Delete object and redirect to the list of bookinstance.
+            Bookinstance.findByIdAndRemove(req.body.bookinstanceid, function deleteBookinstance(err) {
+                if (err) { return next(err); }
+                // Success - go to bookinstance list
+                res.redirect('/catalog/bookinstances')
+            })
+        }
+    });
 };
 
 // Display BookInstance update form on GET.
@@ -113,3 +149,4 @@ exports.bookinstance_update_get = function(req, res) {
 exports.bookinstance_update_post = function(req, res) {
     res.send('NOT IMPLEMENTED: BookInstance update POST');
 };
+

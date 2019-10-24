@@ -147,7 +147,36 @@ exports.author_delete_post = function(req, res, next) {
 
 // Display Author update form on GET.
 exports.author_update_get = function(req, res) {
-    res.send('NOT IMPLEMENTED: Author update GET');
+    // Get books, authors and genres for form.
+    async.parallel({
+        author: function(callback) {
+            Author.findById(req.params.id).populate('book').populate('genre').exec(callback);
+        },
+        books: function(callback) {
+            Book.find(callback);
+        },
+        genres: function(callback) {
+            Genre.find(callback);
+        },
+        }, function(err, results) {
+            if (err) { return next(err); }
+            if (results.author==null) { // No results.
+                var err = new Error('Author not found');
+                err.status = 404;
+                return next(err);
+            }
+            // Success.
+            // Mark our selected genres as checked.
+            for (var all_g_iter = 0; all_g_iter < results.books.length; all_g_iter++) {
+                for (var author_g_iter = 0; author_g_iter < results.author.book.length; author_g_iter++) {
+                    if (results.books[all_g_iter]._id.toString()==results.author.book[author_g_iter]._id.toString()) {
+                        results.genres[all_g_iter].checked='true';
+                    }
+                }
+            }
+            res.render('author_form', { title: 'Update Author', books: results.books, genres: results.genres, author: results.book });
+        });
+
 };
 
 // Handle Author update on POST.
