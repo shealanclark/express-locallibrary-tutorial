@@ -168,8 +168,8 @@ exports.book_delete_get = function(req, res) {
         book: function(callback) {
             Book.findById(req.params.id).exec(callback)
         },
-        book_books: function(callback) {
-          Book.find({ 'book': req.params.id }).exec(callback)
+        book_instances: function(callback) {
+          BookInstance.find({ 'book': req.params.id }).exec(callback)
         },
     }, function(err, results) {
         if (err) { return next(err); }
@@ -177,7 +177,7 @@ exports.book_delete_get = function(req, res) {
             res.redirect('/catalog/books');
         }
         // Successful, so render.
-        res.render('book_delete', { title: 'Delete Book', book: results.book, book_books: results.books_books } );
+        res.render('book_delete', { title: 'Delete Book', book: results.book, book_instances: results.book_instances } );
     });
 
 };
@@ -188,15 +188,15 @@ exports.book_delete_post = function(req, res) {
         book: function(callback) {
           Book.findById(req.body.bookid).exec(callback)
         },
-        book_books: function(callback) {
-          Bookinstance.find({ 'book': req.body.bookinstanceid }).exec(callback)
+        book_instances: function(callback) {
+          BookInstance.find({ 'book': req.body.bookinstanceid }).exec(callback)
         },
     }, function(err, results) {
         if (err) { return next(err); }
         // Success
-        if (results.book_books.length > 0) {
+        if (results.book_instances.length > 0) {
             // Books has bookinstance. Render in same way as for GET route.
-            res.render('book_delete', { title: 'Delete Book', book: results.book, book_books: results.books_books } );
+            res.render('book_delete', { title: 'Delete Book', book: results.book, book_instances: results.books_instances } );
             return;
         }
         else {

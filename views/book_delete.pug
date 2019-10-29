@@ -2,7 +2,7 @@ extends layout
 
 block content
   h1 Title: #{book.title}
-  if book_books.length
+  if book_instances.length
   
     p #[strong Delete the following bookinstance before attempting to delete this book.]
   
@@ -10,7 +10,7 @@ block content
       h4 Copies
 
       dl
-      each bookinstance in book_books
+      each bookinstance in book_instances
         dt 
           a(href=bookinstance.url) #{bookinstance.title}
         dd #{bookinstance.summary}

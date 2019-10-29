@@ -148,25 +148,52 @@ exports.bookinstance_update_get = function(req, res, next) {
 };
 
 // Handle bookinstance update on POST.
-exports.bookinstance_update_get = function(req, res, next){
-    async.parallel({
-        bookinstance: function(callback) {
-            BookInstance.findById(req.params.id).populate('book').exec(callback)
+exports.bookinstance_update_post = [
 
-        };
-    books: function(callback) {
-        Book.find(callback)
-        },
-    },  function(err, results) {
-         if (err) {return next(err);}
-         if (results.bookinstance===null) { //no results.
-            var err = new Error('Book copy not found');
-            err.status = 404;
-            return next(err);
+    // Validate fields.
+    body('book', 'Book must be specified').isLength({ min: 1 }).trim(),
+    body('imprint', 'Imprint must be specified').isLength({ min: 1 }).trim(),
+    body('due_back', 'Invalid date').optional({ checkFalsy: true }).isISO8601(),
+    
+    // Sanitize fields.
+    sanitizeBody('book').escape(),
+    sanitizeBody('imprint').escape(),
+    sanitizeBody('status').escape(),
+    sanitizeBody('due_back').toDate(),
+    
+    // Process request after validation and sanitization.
+    (req, res, next) => {
+
+        // Extract the validation errors from a request.
+        const errors = validationResult(req);
+
+        // Create a BookInstance object with escaped/trimmed data and current id.
+        var bookinstance = new BookInstance(
+          { book: req.body.book,
+            imprint: req.body.imprint,
+            status: req.body.status,
+            due_back: req.body.due_back,
+            _id: req.params.id
+           });
+
+        if (!errors.isEmpty()) {
+            // There are errors so render the form again, passing sanitized values and errors.
+            Book.find({},'title')
+                .exec(function (err, books) {
+                    if (err) { return next(err); }
+                    // Successful, so render.
+                    res.render('bookinstance_form', { title: 'Update BookInstance', book_list : books, selected_book : bookinstance.book._id , errors: errors.array(), bookinstance:bookinstance });
+            });
+            return;
         }
-        res.render('bookinstance_form', {title: 'Update BookInstance', book_list : results.books, selected_book : results.bookinstance.book._id, bookinstance:results.bookinstance });
-    
-    
-    });
-};
+        else {
+            // Data from form is valid.
+            BookInstance.findByIdAndUpdate(req.params.id, bookinstance, {}, function (err,thebookinstance) {
+                if (err) { return next(err); }
+                   // Successful - redirect to detail page.
+                   res.redirect(thebookinstance.url);
+                });
+        }
+    }
+];
 
