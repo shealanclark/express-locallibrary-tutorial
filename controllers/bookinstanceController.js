@@ -97,13 +97,13 @@ exports.bookinstance_create_post = [
 // Display BookInstance delete form on GET.
 exports.bookinstance_delete_get = function(req, res) {
     
-        Bookinstance.findById(req.params.id)
+        BookInstance.findById(req.params.id)
         .populate('book')
         exec(function (err, bookinstance) {
             
             if (err) { return next(err); }
             if (bookinstance==null) { // No results.
-                res.redirect('/catalog/bookinstance');
+                res.redirect('/catalog/bookinstances');
         }
         // Successful, so render.
         res.render('bookinstance_delete', { title: 'Delete BookInstance', bookinstance: bookinstance });
