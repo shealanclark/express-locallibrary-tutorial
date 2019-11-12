@@ -1,5 +1,6 @@
 var BookInstance = require('../models/bookinstance');
 var Book = require('../models/book');
+var async = require('async');
 const { body,validationResult } = require('express-validator/check');
 const { sanitizeBody } = require('express-validator/filter');
 // Display list of all BookInstances.
@@ -99,7 +100,7 @@ exports.bookinstance_delete_get = function(req, res) {
     
         BookInstance.findById(req.params.id)
         .populate('book')
-        exec(function (err, bookinstance) {
+        .exec(function (err, bookinstance) {
             
             if (err) { return next(err); }
             if (bookinstance==null) { // No results.
